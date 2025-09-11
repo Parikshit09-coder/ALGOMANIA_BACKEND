@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const Team = require('../Schemas/Team.js');
 require('dotenv').config();
-const { calculateMemberScore } = require("../Utils/leetcode.js");
+const { calculateMemberScore } = require("../Utils/leetcode.js").default;
 const { getMemberProfile } = require("../Utils/memberdata.js");
 
 
