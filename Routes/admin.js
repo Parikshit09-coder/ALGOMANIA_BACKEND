@@ -1,9 +1,12 @@
 const express = require('express');
+const fetch = require("node-fetch");
 const router = express.Router();
 const Team = require('../Schemas/Team.js');
 const Admin = require('../Schemas/Admin.js');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const { calculateMemberScore } = require("../Utils/leetcode.js").default;
+const { getMemberProfile } = require("../Utils/memberdata.js");
 const SECRET = process.env.JWT_SECRET_KEY | "ALGOMANIA3_SECRET_KEY";
 //For admins to add new teams
 router.post("/add_new/team", async (req, res) => {
@@ -53,6 +56,51 @@ router.get("/team/:teamName", async (req, res) => {
     res.json(team);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+router.get("/update/score/:teamName", async (req, res) => {
+  try {
+    const { teamName } = req.params;
+
+
+    const team = await Team.findOne({ teamName });
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    const afterDate = new Date("2024-09-15");
+    let totalScore = 0;
+
+    for (let member of team.members) {
+      const score = await calculateMemberScore(member, afterDate);
+      member.score = score;
+      totalScore += score;
+    }
+
+    team.totalScore = totalScore;
+    await team.save();
+
+    res.json({
+      message: `✅ Scores updated for team: ${teamName}`,
+      team,
+    });
+  } catch (err) {
+    console.error("❌ Error updating team score:", err);
+    res.status(500).json({ message: "Error updating scores" });
+  }
+});
+
+router.get("/:teamName/member/:userName", async (req, res) => {
+  try {
+    const { userName } = req.params;
+    const memberData = await getMemberProfile(userName);
+
+    res.json({
+      message: ` Member data fetched: ${userName}`,
+      member: memberData,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching member data:", err);
+    res.status(500).json({ message: "Error fetching member data" });
   }
 });
 

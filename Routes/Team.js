@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Team = require('../Schemas/Team.js');
+const { getMemberProfile } = require("../Utils/memberdata.js");
+
 
 require('dotenv').config();
 const SECRET = process.env.JWT_SECRET_KEY | "ALGOMANIA3_SECRET_KEY";
@@ -29,8 +31,20 @@ router.get("/myTeam", async (req, res) => {
   }
 });
 
+router.get("/:teamName/member/:userName", async (req, res) => {
+  try {
+    const { userName } = req.params;
+    const memberData = await getMemberProfile(userName);
 
-
+    res.json({
+      message: ` Member data fetched: ${userName}`,
+      member: memberData,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching member data:", err);
+    res.status(500).json({ message: "Error fetching member data" });
+  }
+});
 
   
 module.exports = router;

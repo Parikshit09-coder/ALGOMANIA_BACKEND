@@ -9,6 +9,7 @@ const authentication = require('./Middleware/Authentication.js');
 
 require('dotenv').config();
 app.use(cors());
+
 app.use(express.json());
 app.use('/', require('./Routes/login'))
 app.use('/admin',authentication("admin"),require('./Routes/admin.js'))
