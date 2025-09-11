@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Team = require('../Schemas/Team.js');
 const { getMemberProfile } = require("../Utils/memberdata.js");
-
+const Notice = require("../Schemas/Notes.js");
 
 require('dotenv').config();
 const SECRET = process.env.JWT_SECRET_KEY | "ALGOMANIA3_SECRET_KEY";
@@ -30,14 +30,29 @@ router.get("/myTeam", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+router.get("/view/notices", async (req, res) => {
+  try {
+    const notices = await Notice.find().sort({ createdAt: -1 });
+    res.json({ notices });
+  } catch (err) {
+    console.error("Error fetching notices:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 router.get("/:teamName/member/:userName", async (req, res) => {
   try {
     const { userName } = req.params;
-    const memberData = await getMemberProfile(userName);
+    const { startDate, endDate } = req.query; 
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: "startDate and endDate are required" });
+    }
+
+    const memberData = await getMemberProfile(userName, new Date(startDate), new Date(endDate));
 
     res.json({
-      message: ` Member data fetched: ${userName}`,
+      message: `✅ Member data fetched: ${userName}`,
       member: memberData,
     });
   } catch (err) {
@@ -45,6 +60,5 @@ router.get("/:teamName/member/:userName", async (req, res) => {
     res.status(500).json({ message: "Error fetching member data" });
   }
 });
-
   
 module.exports = router;

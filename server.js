@@ -15,10 +15,17 @@ app.use('/', require('./Routes/login'))
 app.use('/admin',authentication("admin"),require('./Routes/admin.js'))
 app.use('/team',authentication("user"),require('./Routes/Team.js'))
 
-const MONGO_URL = process.env.MONGO_URL;
+require('dotenv').config();
 const PORT = process.env.PORT || 4000;
 
-mongoose.connect(MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => app.listen(PORT, () => console.log("Server running on port 5000")))
-  .catch(err => console.log(err));
+const MONGO_URL = process.env.MONGO_URL;
+mongoose.connect("mongodb+srv://gurudesai200513_db_user:IOdiQMZ16U7k4gvJ@cluster0.nomqvbf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error("MongoDB connection error:", err));
+
+;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+})
 

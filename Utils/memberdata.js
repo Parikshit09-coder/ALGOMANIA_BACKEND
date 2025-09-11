@@ -3,11 +3,8 @@ import fetch from "node-fetch";
 // Points for difficulty
 const difficultyPoints = { Easy: 2, Medium: 3, Hard: 5 };
 
-// Cutoff date
-const AFTER_DATE = new Date("2025-09-01T00:00:00Z");
-
 // Fetch recent solved submissions for a member
-async function getUserSolvedAfterDate(username) {
+async function getUserSolvedBetweenDates(username, startDate, endDate) {
   const query = `
     query recentAcSubmissions($username: String!) {
       recentAcSubmissionList(username: $username) {
@@ -22,14 +19,15 @@ async function getUserSolvedAfterDate(username) {
   const response = await fetch("https://leetcode.com/graphql", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables: { username} }),
+    body: JSON.stringify({ query, variables: { username } }),
   });
+
   const data = await response.json();
   if (!data.data || !data.data.recentAcSubmissionList) return [];
 
   return data.data.recentAcSubmissionList.filter((sub) => {
     const subDate = new Date(parseInt(sub.timestamp) * 1000);
-    return subDate >= AFTER_DATE;
+    return subDate >= startDate && subDate <= endDate; // ✅ date filtering
   });
 }
 
@@ -54,8 +52,8 @@ async function getProblemDifficulty(titleSlug) {
 // ---------------------------
 // Standalone function
 // ---------------------------
-export async function getMemberProfile(memberUserName) {
-  const solved = await getUserSolvedAfterDate(memberUserName);
+export async function getMemberProfile(memberUserName, startDate, endDate) {
+  const solved = await getUserSolvedBetweenDates(memberUserName, startDate, endDate);
   let score = 0;
   const submissions = [];
 
