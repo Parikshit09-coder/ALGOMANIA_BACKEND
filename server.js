@@ -16,10 +16,10 @@ app.use('/admin',authentication("admin"),require('./Routes/admin.js'))
 app.use('/team',authentication("user"),require('./Routes/Team.js'))
 
 require('dotenv').config();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 
 const MONGO_URL = process.env.MONGO_URL;
-mongoose.connect("mongodb+srv://gurudesai200513_db_user:IOdiQMZ16U7k4gvJ@cluster0.nomqvbf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("MongoDB connection error:", err));
 
