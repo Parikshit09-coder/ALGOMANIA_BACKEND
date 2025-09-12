@@ -1,4 +1,5 @@
-import fetch from "node-fetch";
+// Use dynamic import for node-fetch (v3 ESM support)
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 // Points for difficulty
 const difficultyPoints = { Easy: 2, Medium: 3, Hard: 5 };
@@ -27,7 +28,7 @@ async function getUserSolvedBetweenDates(username, startDate, endDate) {
 
   return data.data.recentAcSubmissionList.filter((sub) => {
     const subDate = new Date(parseInt(sub.timestamp) * 1000);
-    return subDate >= startDate && subDate <= endDate; // ✅ date filtering
+    return subDate >= startDate && subDate <= endDate;
   });
 }
 
@@ -50,9 +51,9 @@ async function getProblemDifficulty(titleSlug) {
 }
 
 // ---------------------------
-// Standalone function
+// CommonJS export
 // ---------------------------
-export async function getMemberProfile(memberUserName, startDate, endDate) {
+async function getMemberProfile(memberUserName, startDate, endDate) {
   const solved = await getUserSolvedBetweenDates(memberUserName, startDate, endDate);
   let score = 0;
   const submissions = [];
@@ -76,3 +77,5 @@ export async function getMemberProfile(memberUserName, startDate, endDate) {
 
   return { userName: memberUserName, score, submissions };
 }
+
+module.exports = { getMemberProfile };

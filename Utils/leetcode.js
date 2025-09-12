@@ -1,7 +1,6 @@
-import fetch from "node-fetch";
+// Use dynamic import for node-fetch
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
-///IMPORTANT: Date range will come from user request
-// GraphQL query for recent submissions
 const LEETCODE_QUERY = `
   query recentAcSubmissions($username: String!) {
     recentAcSubmissionList(username: $username) {
@@ -16,7 +15,7 @@ const LEETCODE_QUERY = `
 
 const difficultyPoints = { Easy: 2, Medium: 3, Hard: 5 };
 
-// Fetch solved problems **between start and end dates**
+// Fetch solved problems between start and end dates
 async function getUserSolvedBetweenDates(username, startDate, endDate) {
   const response = await fetch("https://leetcode.com/graphql", {
     method: "POST",
@@ -72,6 +71,4 @@ async function calculateMemberScore(member, startDate, endDate) {
   return score;
 }
 
-export default {
-  calculateMemberScore,
-};
+module.exports = { calculateMemberScore };
