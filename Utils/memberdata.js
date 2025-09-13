@@ -2,7 +2,7 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 // Points for difficulty
-const difficultyPoints = { Easy: 2, Medium: 3, Hard: 5 };
+const difficultyPoints = { Easy: 1, Medium: 3, Hard: 5 };
 
 // Fetch recent solved submissions for a member
 async function getUserSolvedBetweenDates(username, startDate, endDate) {

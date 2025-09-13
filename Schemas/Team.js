@@ -17,6 +17,7 @@ const teamSchema = new Schema({
   password: { type: String, required: true },
   members: [memberSchema],
   totalScore: { type: Number, default: 0 },
+  rank: { type: Number, default: null },    
   role: { type: String, enum: ["user"], default: "user", immutable: true }
 });
 

@@ -9,12 +9,26 @@ const SECRET = process.env.JWT_SECRET_KEY | "ALGOMANIA3_SECRET_KEY";
 
 router.get("/topteams", async (req, res) => {
   try {
-    const teams = await Team.find({}, '-password'); 
-    res.json(teams);
+    // Fetch all teams, exclude password
+    const teams = await Team.find({}, "-password");
+
+    // Sort by totalScore (not score field directly, since each team has members)
+    const sortedTeams = teams.sort((a, b) => b.totalScore - a.totalScore);
+
+    // Assign ranks and update DB
+    const rankedTeams = await Promise.all(
+      sortedTeams.map(async (team, index) => {
+        team.rank = index + 1;
+        await team.save(); // 👈 persists rank in DB
+        return team.toObject();
+      })
+    );
+
+    res.json(rankedTeams);
   } catch (err) {
     res.status(500).json({ message: err.message });
-  } });
-
+  }
+});
 
 
 router.get("/myTeam", async (req, res) => {

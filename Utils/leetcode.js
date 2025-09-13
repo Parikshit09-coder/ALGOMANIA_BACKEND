@@ -13,7 +13,7 @@ const LEETCODE_QUERY = `
   }
 `;
 
-const difficultyPoints = { Easy: 2, Medium: 3, Hard: 5 };
+const difficultyPoints = { Easy: 1, Medium: 3, Hard: 5 };
 
 // Fetch solved problems between start and end dates
 async function getUserSolvedBetweenDates(username, startDate, endDate) {
