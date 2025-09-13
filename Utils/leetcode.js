@@ -57,18 +57,59 @@ async function getProblemDifficulty(titleSlug) {
 }
 
 // Calculate score for one member between dates
-async function calculateMemberScore(member, startDate, endDate) {
-  const solved = await getUserSolvedBetweenDates(member.userName, startDate, endDate);
-  let score = 0;
+// Calculate score for one member between dates
+async function calculateMemberScore(member, startDate, endDate, allowedProblems) {
+  try {
+    
+    const submissions = await getUserSolvedBetweenDates(member.userName, startDate, endDate);
 
-  for (let problem of solved) {
-    const difficulty = await getProblemDifficulty(problem.titleSlug);
-    if (difficulty && difficultyPoints[difficulty]) {
-      score += difficultyPoints[difficulty];
+    let score = 0;
+    let scoredProblems = new Set(); // Track already scored problems
+    let scoredDetails = [];
+
+    for (let sub of submissions) {
+      // Skip duplicates and non-allowed problems
+      if (scoredProblems.has(sub.titleSlug)) {
+        continue;
+      }
+      
+      if (!allowedProblems.includes(sub.titleSlug)) {
+        continue;
+      }
+      
+      if (sub.statusDisplay !== "Accepted") {
+        continue;
+      }
+
+      try {
+        const difficulty = await getProblemDifficulty(sub.titleSlug);
+        if (difficulty && difficultyPoints[difficulty]) {
+          const points = difficultyPoints[difficulty];
+          score += points;
+          scoredProblems.add(sub.titleSlug);
+          
+          const submissionDate = new Date(parseInt(sub.timestamp) * 1000);
+          scoredDetails.push({ 
+            problem: sub.titleSlug, 
+            difficulty, 
+            points,
+            date: submissionDate.toISOString().split('T')[0]
+          });
+          
+        }
+      } catch (error) {
+        console.error(`   ❌ Error processing ${sub.titleSlug}:`, error.message);
+      }
     }
+
+    if (scoredDetails.length > 0) {
+    }
+    
+    return score;
+    
+  } catch (error) {
+    console.error(`   💥 Error calculating score for ${member.userName}:`, error.message);
+    return 0; // Return 0 if there's an error to avoid breaking the whole process
   }
-
-  return score;
 }
-
 module.exports = { calculateMemberScore };

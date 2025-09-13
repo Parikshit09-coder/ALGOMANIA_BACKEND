@@ -6,7 +6,13 @@ require('dotenv').config();
 const { calculateMemberScore } = require("../Utils/leetcode.js");
 const { getMemberProfile } = require("../Utils/memberdata.js");
 
+const fs = require("fs");
+const path = require("path");
 
+// Load once at startup
+const questionMap = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "../leetcode_questions.json"), "utf-8")
+);
 const SECRET = process.env.JWT_SECRET_KEY | "ALGOMANIA3_SECRET_KEY";
 const Notice = require("../Schemas/Notes.js");
 
@@ -62,43 +68,69 @@ router.get("/team/:teamName", async (req, res) => {
 });
 
 // Update scores for a team in a date range
-router.get("/update/score/:teamName", async (req, res) => {
+router.post("/contest/:teamName/update-score", async (req, res) => {
   try {
     const { teamName } = req.params;
-    const { startDate, endDate } = req.query; // user provides dates in query params
+    const { startDate, endDate, problems } = req.body;
 
-    if (!startDate || !endDate) {
-      return res.status(400).json({ message: "Please provide startDate and endDate" });
+
+    if (!startDate || !endDate || !problems) {
+      return res.status(400).json({ message: "Please provide startDate, endDate, and problems" });
     }
 
     const start = new Date(startDate);
     const end = new Date(endDate);
+    
+    // Add 1 day to end date to include the entire end day
+    end.setDate(end.getDate() + 1);
 
     const team = await Team.findOne({ teamName });
     if (!team) return res.status(404).json({ message: "Team not found" });
 
+
+    // Convert problem IDs to titleSlugs
+    const allowedProblems = problems
+      .map((num) => {
+        const slug = questionMap[num.toString()];
+        return slug;
+      })
+      .filter(Boolean);
+
+
     let totalScore = 0;
 
     for (let member of team.members) {
-      const score = await calculateMemberScore(member, start, end);
-      member.score = score;
-      totalScore += score;
+      
+      try {
+        const score = await calculateMemberScore(member, start, end, allowedProblems);
+        
+        member.score = score;
+        totalScore += score;
+      } catch (memberError) {
+        console.error(`❌ Error processing ${member.username}:`, memberError);
+        // Continue with other members even if one fails
+        member.score = 0;
+      }
     }
 
     team.totalScore = totalScore;
     await team.save();
 
+
     res.json({
-      message: `✅ Scores updated for team: ${teamName}`,
+      message: `✅ Contest scores updated for team: ${teamName}`,
+      allowedProblems,
       startDate,
       endDate,
+      totalScore,
       team,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error updating team score", error: err.message });
+    console.error("❌ Error updating contest score:", err);
+    res.status(500).json({ message: "Error updating contest score", error: err.message });
   }
 });
+
 
 router.get("/:teamName/member/:userName", async (req, res) => {
   try {
