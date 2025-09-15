@@ -8,7 +8,14 @@ const authentication = require('./Middleware/Authentication.js');
 
 
 require('dotenv').config();
-app.use(cors());
+app.use(cors(
+  {
+    origin:"http://3.211.30.133:3000",
+        credentials: true, 
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+         allowedHeaders: ["Content-Type", "Authorization"], 
+  }
+)); 
 
 app.use(express.json());
 app.use('/', require('./Routes/login'))
